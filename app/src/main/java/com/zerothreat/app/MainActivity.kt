@@ -5,30 +5,34 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation. layout.padding
 import androidx.compose.material. icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose. material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui. Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.*
-import com.zerothreat.app.ui.alerts.ThreatAlertDialog
-import com.zerothreat.app.ui.alerts.ThreatLevel
+import com.zerothreat.app.data.AppPreferences
+import com. zerothreat.app.ui.alerts.ThreatAlertDialog
+import com.zerothreat. app.ui.alerts.ThreatLevel
 import com.zerothreat.app.ui.dashboard.DashboardScreen
-import com.zerothreat.app.ui.manual.ManualCheckScreen
-import com.zerothreat.app.ui.mode.AppMode
-import com.zerothreat. app.ui.mode.ModeSelectionScreen
-import com.zerothreat.app.ui.onboarding.OnboardingScreen
-import com.zerothreat.app.ui.permissions.PermissionRequestScreen
-import com. zerothreat.app.ui.settings.SettingsScreen
-import com.zerothreat. app.ui.splash.SplashScreen
-import com.zerothreat.app.ui.theme.*
+import com.zerothreat.app. ui.manual.ManualCheckScreen
+import com.zerothreat.app.ui.mode. AppMode
+import com.zerothreat.app.ui.mode.ModeSelectionScreen
+import com. zerothreat.app.ui.onboarding.OnboardingScreen
+import com.zerothreat. app.ui.permissions.PermissionRequestScreen
+import com.zerothreat.app.ui.settings.SettingsScreen
+import com.zerothreat.app. ui.splash.SplashScreen
+import com.zerothreat.app. ui.theme.*
 
 class MainActivity : ComponentActivity() {
+    private lateinit var appPreferences: AppPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        appPreferences = AppPreferences(this)
+
         setContent {
             ZeroThreatTheme {
-                ZeroThreatApp()
+                ZeroThreatApp(appPreferences)
             }
         }
     }
@@ -46,12 +50,22 @@ sealed class Screen(val route: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ZeroThreatApp() {
+fun ZeroThreatApp(appPreferences: AppPreferences) {
     val navController = rememberNavController()
     var showBottomBar by remember { mutableStateOf(false) }
 
-    val navBackStackEntry by navController. currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?. route
+
+    // Determine start destination based on preferences
+    val startDestination = remember {
+        when {
+            ! appPreferences.onboardingCompleted -> Screen. Splash. route
+            ! appPreferences.permissionsGranted -> Screen.Permissions.route
+            ! appPreferences.modeSelected -> Screen.ModeSelection.route
+            else -> Screen.Dashboard.route
+        }
+    }
 
     LaunchedEffect(currentRoute) {
         showBottomBar = currentRoute in listOf(
@@ -68,7 +82,7 @@ fun ZeroThreatApp() {
                     containerColor = DarkBackground
                 ) {
                     NavigationBarItem(
-                        selected = currentRoute == Screen.Dashboard.route,
+                        selected = currentRoute == Screen.Dashboard. route,
                         onClick = {
                             navController.navigate(Screen.Dashboard.route) {
                                 launchSingleTop = true
@@ -86,27 +100,27 @@ fun ZeroThreatApp() {
                     )
 
                     NavigationBarItem(
-                        selected = currentRoute == Screen.ManualCheck. route,
+                        selected = currentRoute == Screen.ManualCheck.route,
                         onClick = {
-                            navController.navigate(Screen.ManualCheck.route) {
+                            navController.navigate(Screen. ManualCheck.route) {
                                 launchSingleTop = true
                             }
                         },
-                        icon = { Icon(Icons.Default. Search, contentDescription = "Check Link") },
+                        icon = { Icon(Icons.Default.Search, contentDescription = "Check Link") },
                         label = { Text("Check Link") },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = ElectricPurple,
                             selectedTextColor = ElectricPurple,
                             unselectedIconColor = TextMuted,
                             unselectedTextColor = TextMuted,
-                            indicatorColor = ElectricPurple.copy(alpha = 0.2f)
+                            indicatorColor = ElectricPurple. copy(alpha = 0.2f)
                         )
                     )
 
                     NavigationBarItem(
                         selected = currentRoute == Screen.Settings.route,
                         onClick = {
-                            navController.navigate(Screen.Settings. route) {
+                            navController. navigate(Screen.Settings.route) {
                                 launchSingleTop = true
                             }
                         },
@@ -126,7 +140,7 @@ fun ZeroThreatApp() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Splash.route,
+            startDestination = startDestination,
             modifier = Modifier. padding(paddingValues)
         ) {
             composable(Screen.Splash.route) {
@@ -142,23 +156,27 @@ fun ZeroThreatApp() {
             composable(Screen.Onboarding.route) {
                 OnboardingScreen(
                     onFinish = {
-                        navController.navigate(Screen.Permissions. route) {
-                            popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        appPreferences.onboardingCompleted = true
+                        appPreferences.isFirstLaunch = false
+                        navController.navigate(Screen. Permissions.route) {
+                            popUpTo(Screen. Onboarding.route) { inclusive = true }
                         }
                     }
                 )
             }
 
-            composable(Screen.Permissions. route) {
+            composable(Screen. Permissions.route) {
                 PermissionRequestScreen(
                     onPermissionsGranted = {
+                        appPreferences.permissionsGranted = true
                         navController.navigate(Screen.ModeSelection.route) {
-                            popUpTo(Screen. Permissions.route) { inclusive = true }
+                            popUpTo(Screen.Permissions. route) { inclusive = true }
                         }
                     },
                     onSkip = {
-                        navController. navigate(Screen.ModeSelection.route) {
-                            popUpTo(Screen. Permissions.route) { inclusive = true }
+                        appPreferences.permissionsGranted = true
+                        navController.navigate(Screen.ModeSelection.route) {
+                            popUpTo(Screen.Permissions.route) { inclusive = true }
                         }
                     }
                 )
@@ -167,6 +185,8 @@ fun ZeroThreatApp() {
             composable(Screen.ModeSelection.route) {
                 ModeSelectionScreen(
                     onModeSelected = { mode ->
+                        appPreferences.modeSelected = true
+                        appPreferences.selectedMode = mode. name
                         navController.navigate(Screen.Dashboard.route) {
                             popUpTo(Screen.ModeSelection.route) { inclusive = true }
                         }
@@ -192,7 +212,7 @@ fun ZeroThreatApp() {
                 if (showAlert) {
                     ThreatAlertDialog(
                         url = checkedUrl,
-                        threatLevel = ThreatLevel. PHISHING, // Demo - replace with actual detection
+                        threatLevel = ThreatLevel. PHISHING,
                         reason = "This URL matches known phishing patterns",
                         onBlock = { showAlert = false },
                         onViewSafely = { showAlert = false },

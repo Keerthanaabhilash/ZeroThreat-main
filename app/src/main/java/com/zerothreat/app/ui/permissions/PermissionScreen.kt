@@ -5,7 +5,7 @@ import android.provider.Settings
 import androidx.compose. foundation.background
 import androidx.compose.foundation. layout.*
 import androidx.compose. foundation.shape.RoundedCornerShape
-import androidx.compose. material.icons.Icons
+import androidx.compose.material. icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,14 +17,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit. sp
-import com.zerothreat.app.ui.theme.*
+import com.zerothreat.app. ui.theme.*
 
 @Composable
 fun PermissionRequestScreen(
     onPermissionsGranted: () -> Unit,
-    onSkip: () -> Unit
+    onSkip:  () -> Unit
 ) {
-    val context = LocalContext. current
+    val context = LocalContext.current
     var notificationPermissionGranted by remember { mutableStateOf(false) }
     var vpnPermissionGranted by remember { mutableStateOf(false) }
 
@@ -33,7 +33,7 @@ fun PermissionRequestScreen(
             .fillMaxSize()
             .background(DarkBackground)
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment. CenterHorizontally
     ) {
         Spacer(modifier = Modifier. height(32.dp))
 
@@ -73,6 +73,8 @@ fun PermissionRequestScreen(
             onRequestPermission = {
                 val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                 context.startActivity(intent)
+                // Toggle state when button is clicked
+                notificationPermissionGranted = true
             }
         )
 
@@ -85,18 +87,17 @@ fun PermissionRequestScreen(
             description = "Monitor clicked links before they open in browser",
             isGranted = vpnPermissionGranted,
             onRequestPermission = {
-                // VPN permission will be requested when user enables it
                 vpnPermissionGranted = true
             }
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier. weight(1f))
 
         // Privacy note
         Card(
             modifier = Modifier. fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = ElectricPurple. copy(alpha = 0.1f)
+                containerColor = ElectricPurple.copy(alpha = 0.1f)
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -125,12 +126,7 @@ fun PermissionRequestScreen(
         // Continue button
         Button(
             onClick = {
-                if (notificationPermissionGranted && vpnPermissionGranted) {
-                    onPermissionsGranted()
-                } else {
-                    // Continue anyway
-                    onPermissionsGranted()
-                }
+                onPermissionsGranted()
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -204,14 +200,14 @@ fun PermissionCard(
                 )
             }
 
-            Spacer(modifier = Modifier. width(12.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             if (isGranted) {
                 Icon(
-                    imageVector = Icons.Default.CheckCircle,
+                    imageVector = Icons. Default.CheckCircle,
                     contentDescription = "Granted",
                     tint = SafeGreen,
-                    modifier = Modifier. size(28.dp)
+                    modifier = Modifier.size(28.dp)
                 )
             } else {
                 OutlinedButton(
