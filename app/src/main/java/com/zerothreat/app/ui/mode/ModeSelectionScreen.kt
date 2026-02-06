@@ -1,10 +1,10 @@
 package com.zerothreat.app.ui.mode
 
-import androidx.compose. foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material. icons.filled.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation. layout.*
+import androidx.compose.foundation. shape.RoundedCornerShape
+import androidx.compose.material. icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,8 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit. sp
+import androidx.compose.ui. unit.dp
+import androidx.compose.ui.unit.sp
+import com.zerothreat.app.data.AppPreferences
 import com.zerothreat.app.ui.theme.*
 
 enum class AppMode {
@@ -22,9 +23,10 @@ enum class AppMode {
 
 @Composable
 fun ModeSelectionScreen(
-    onModeSelected:  (AppMode) -> Unit
+    appPreferences: AppPreferences,
+    onModeSelected: (AppMode) -> Unit
 ) {
-    var selectedMode by remember { mutableStateOf<AppMode?>(null) }
+    var selectedMode by remember { mutableStateOf<AppMode? >(null) }
     var notificationMonitoring by remember { mutableStateOf(false) }
     var linkMonitoring by remember { mutableStateOf(false) }
 
@@ -35,7 +37,7 @@ fun ModeSelectionScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier. height(32.dp))
 
         Text(
             text = "Choose Your Protection Mode",
@@ -45,7 +47,7 @@ fun ModeSelectionScreen(
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier. height(8.dp))
 
         Text(
             text = "You can change this anytime in settings",
@@ -60,15 +62,15 @@ fun ModeSelectionScreen(
             icon = Icons.Default.TouchApp,
             title = "Manual Mode",
             description = "Paste URLs manually to check if they're safe.  Perfect for privacy-conscious users.",
-            isSelected = selectedMode == AppMode. MANUAL,
-            onClick = { selectedMode = AppMode. MANUAL }
+            isSelected = selectedMode == AppMode.MANUAL,
+            onClick = { selectedMode = AppMode.MANUAL }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier. height(16.dp))
 
         // Smart Mode Card
         ModeCard(
-            icon = Icons.Default.AutoAwesome,
+            icon = Icons. Default.AutoAwesome,
             title = "Smart Mode",
             description = "Automatic real-time protection across all apps. Enable what you need below.",
             isSelected = selectedMode == AppMode.SMART,
@@ -76,8 +78,8 @@ fun ModeSelectionScreen(
         )
 
         // Smart Mode Options
-        if (selectedMode == AppMode. SMART) {
-            Spacer(modifier = Modifier.height(16.dp))
+        if (selectedMode == AppMode.SMART) {
+            Spacer(modifier = Modifier. height(16.dp))
 
             Card(
                 modifier = Modifier. fillMaxWidth(),
@@ -105,7 +107,7 @@ fun ModeSelectionScreen(
                             imageVector = Icons.Default.Notifications,
                             contentDescription = "Notifications",
                             tint = ElectricPurple,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier. size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -177,18 +179,33 @@ fun ModeSelectionScreen(
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier. weight(1f))
 
         // Continue Button
         Button(
             onClick = {
-                selectedMode?.let { onModeSelected(it) }
+                selectedMode?. let { mode ->
+                    // Save preferences based on mode
+                    when (mode) {
+                        AppMode. MANUAL -> {
+                            appPreferences.smartModeEnabled = false
+                            appPreferences.notificationMonitoring = false
+                            appPreferences.linkMonitoring = false
+                        }
+                        AppMode. SMART -> {
+                            appPreferences.smartModeEnabled = true
+                            appPreferences.notificationMonitoring = notificationMonitoring
+                            appPreferences.linkMonitoring = linkMonitoring
+                        }
+                    }
+                    onModeSelected(mode)
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             enabled = selectedMode != null,
-            colors = ButtonDefaults.buttonColors(
+            colors = ButtonDefaults. buttonColors(
                 containerColor = ElectricPurple,
                 disabledContainerColor = TextMuted
             ),
@@ -201,7 +218,7 @@ fun ModeSelectionScreen(
             )
         }
 
-        Spacer(modifier = Modifier. height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -226,7 +243,7 @@ fun ModeCard(
     ) {
         Row(
             modifier = Modifier
-                . fillMaxWidth()
+                .fillMaxWidth()
                 .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -249,7 +266,7 @@ fun ModeCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
-                    style = MaterialTheme. typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary,
                     lineHeight = 20.sp
                 )

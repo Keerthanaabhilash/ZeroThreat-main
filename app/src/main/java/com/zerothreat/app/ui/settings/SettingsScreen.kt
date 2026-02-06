@@ -1,31 +1,34 @@
 package com.zerothreat.app.ui.settings
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx. compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation. shape.RoundedCornerShape
-import androidx.compose.material. icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx. compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose. material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui. Alignment
-import androidx.compose. ui.Modifier
-import androidx. compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose. ui.unit.sp
-import com.zerothreat.app. ui.theme.*
+import androidx. compose.ui.unit.sp
+import com.zerothreat. app.data.AppPreferences
+import com.zerothreat. app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit
+    appPreferences:  AppPreferences,
+    onNavigateBack: () -> Unit,
+    onNavigateToPrivacy: () -> Unit,
+    onNavigateToAbout: () -> Unit,
+    onNavigateToHelp: () -> Unit
 ) {
-    var smartModeEnabled by remember { mutableStateOf(true) }
-    var notificationMonitoring by remember { mutableStateOf(true) }
-    var linkMonitoring by remember { mutableStateOf(true) }
-    var mlEnabled by remember { mutableStateOf(true) }
+    var smartModeEnabled by remember { mutableStateOf(appPreferences.smartModeEnabled) }
+    var notificationMonitoring by remember { mutableStateOf(appPreferences.notificationMonitoring) }
+    var linkMonitoring by remember { mutableStateOf(appPreferences.linkMonitoring) }
     var autoUpdate by remember { mutableStateOf(true) }
 
     Scaffold(
@@ -41,13 +44,13 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.Default. ArrowBack,
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
                             tint = TextPrimary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults. topAppBarColors(
                     containerColor = DarkBackground
                 )
             )
@@ -64,16 +67,26 @@ fun SettingsScreen(
             // Protection Mode Section
             item {
                 SectionHeader("Protection Mode")
-                Spacer(modifier = Modifier. height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             item {
                 SettingsToggleCard(
-                    icon = Icons. Default.AutoAwesome,
+                    icon = Icons.Default.AutoAwesome,
                     title = "Smart Mode",
                     description = "Automatic protection across all apps",
                     checked = smartModeEnabled,
-                    onCheckedChange = { smartModeEnabled = it }
+                    onCheckedChange = {
+                        smartModeEnabled = it
+                        appPreferences. smartModeEnabled = it
+                        if (! it) {
+                            // Turn off monitoring when smart mode is disabled
+                            notificationMonitoring = false
+                            linkMonitoring = false
+                            appPreferences.notificationMonitoring = false
+                            appPreferences.linkMonitoring = false
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -81,7 +94,7 @@ fun SettingsScreen(
             if (smartModeEnabled) {
                 item {
                     Card(
-                        modifier = Modifier. fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
                             containerColor = CardBackground
                         ),
@@ -93,12 +106,15 @@ fun SettingsScreen(
                                 title = "Notification Monitoring",
                                 description = "Scan incoming notifications",
                                 checked = notificationMonitoring,
-                                onCheckedChange = { notificationMonitoring = it }
+                                onCheckedChange = {
+                                    notificationMonitoring = it
+                                    appPreferences.notificationMonitoring = it
+                                }
                             )
 
                             Divider(
                                 color = TextMuted. copy(alpha = 0.2f),
-                                modifier = Modifier.padding(vertical = 12.dp)
+                                modifier = Modifier. padding(vertical = 12.dp)
                             )
 
                             SettingsToggleItem(
@@ -106,7 +122,10 @@ fun SettingsScreen(
                                 title = "Link Monitoring (VPN)",
                                 description = "Monitor clicked links",
                                 checked = linkMonitoring,
-                                onCheckedChange = { linkMonitoring = it }
+                                onCheckedChange = {
+                                    linkMonitoring = it
+                                    appPreferences. linkMonitoring = it
+                                }
                             )
                         }
                     }
@@ -117,17 +136,6 @@ fun SettingsScreen(
             // Detection Settings Section
             item {
                 SectionHeader("Detection Settings")
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            item {
-                SettingsToggleCard(
-                    icon = Icons.Default. Psychology,
-                    title = "Machine Learning",
-                    description = "Enable AI-powered detection (uses more battery)",
-                    checked = mlEnabled,
-                    onCheckedChange = { mlEnabled = it }
-                )
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
@@ -176,7 +184,7 @@ fun SettingsScreen(
                     icon = Icons.Default. PrivacyTip,
                     title = "Privacy Policy",
                     description = "Learn how we protect your data",
-                    onClick = { /* Open privacy policy */ }
+                    onClick = onNavigateToPrivacy
                 )
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -184,7 +192,7 @@ fun SettingsScreen(
             // About Section
             item {
                 SectionHeader("About")
-                Spacer(modifier = Modifier. height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             item {
@@ -192,9 +200,9 @@ fun SettingsScreen(
                     icon = Icons.Default.Info,
                     title = "About ZeroThreat",
                     description = "Version 1.0.0",
-                    onClick = { /* Open about */ }
+                    onClick = onNavigateToAbout
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier. height(12.dp))
             }
 
             item {
@@ -202,7 +210,7 @@ fun SettingsScreen(
                     icon = Icons.Default.Help,
                     title = "Help & Support",
                     description = "FAQs and troubleshooting",
-                    onClick = { /* Open help */ }
+                    onClick = onNavigateToHelp
                 )
             }
         }
@@ -223,13 +231,13 @@ fun SectionHeader(text: String) {
 @Composable
 fun SettingsToggleCard(
     icon: ImageVector,
-    title:  String,
+    title: String,
     description: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange:  (Boolean) -> Unit
 ) {
     Card(
-        modifier = Modifier. fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = CardBackground
         ),
@@ -253,11 +261,11 @@ fun SettingsToggleCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography. titleMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     color = TextPrimary,
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier. height(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
@@ -266,7 +274,7 @@ fun SettingsToggleCard(
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier. width(12.dp))
 
             Switch(
                 checked = checked,
@@ -285,7 +293,7 @@ fun SettingsToggleCard(
 @Composable
 fun SettingsToggleItem(
     icon: ImageVector,
-    title:  String,
+    title: String,
     description: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
@@ -349,7 +357,7 @@ fun SettingsActionCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment. CenterVertically
         ) {
             Icon(
                 imageVector = icon,
@@ -370,7 +378,7 @@ fun SettingsActionCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
-                    style = MaterialTheme. typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                     lineHeight = 18.sp
                 )
@@ -401,7 +409,7 @@ fun SettingsNavigationCard(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults. cardColors(
+        colors = CardDefaults.cardColors(
             containerColor = CardBackground
         ),
         shape = RoundedCornerShape(16.dp)
@@ -410,18 +418,18 @@ fun SettingsNavigationCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment. CenterVertically
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = title,
                 tint = ElectricPurple,
-                modifier = Modifier. size(32.dp)
+                modifier = Modifier.size(32.dp)
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier. weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
@@ -431,14 +439,14 @@ fun SettingsNavigationCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme. typography.bodySmall,
                     color = TextSecondary,
                     lineHeight = 18.sp
                 )
             }
 
             Icon(
-                imageVector = Icons. Default.ChevronRight,
+                imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Navigate",
                 tint = TextMuted,
                 modifier = Modifier.size(24.dp)

@@ -3,24 +3,27 @@ package com.zerothreat.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation. layout.padding
+import androidx.compose.foundation. layout. padding
 import androidx.compose.material. icons.Icons
-import androidx.compose. material.icons.filled.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.*
 import com.zerothreat.app.data.AppPreferences
 import com. zerothreat.app.ui.alerts.ThreatAlertDialog
-import com.zerothreat. app.ui.alerts.ThreatLevel
+import com.zerothreat.app. ui.alerts.ThreatLevel
 import com.zerothreat.app.ui.dashboard.DashboardScreen
-import com.zerothreat.app. ui.manual.ManualCheckScreen
-import com.zerothreat.app.ui.mode. AppMode
+import com.zerothreat.app. ui.info.AboutScreen
+import com.zerothreat.app.ui.info. HelpScreen
+import com.zerothreat.app.ui.info. PrivacyPolicyScreen
+import com.zerothreat.app.ui.manual.ManualCheckScreen
+import com.zerothreat.app.ui.mode.AppMode
 import com.zerothreat.app.ui.mode.ModeSelectionScreen
-import com. zerothreat.app.ui.onboarding.OnboardingScreen
-import com.zerothreat. app.ui.permissions.PermissionRequestScreen
-import com.zerothreat.app.ui.settings.SettingsScreen
-import com.zerothreat.app. ui.splash.SplashScreen
+import com.zerothreat.app.ui.onboarding.OnboardingScreen
+import com.zerothreat.app.ui.permissions.PermissionRequestScreen
+import com.zerothreat.app.ui.settings. SettingsScreen
+import com. zerothreat.app.ui.splash.SplashScreen
 import com.zerothreat.app. ui.theme.*
 
 class MainActivity : ComponentActivity() {
@@ -46,6 +49,9 @@ sealed class Screen(val route: String) {
     object Dashboard : Screen("dashboard")
     object ManualCheck : Screen("manual")
     object Settings : Screen("settings")
+    object Privacy : Screen("privacy")
+    object About : Screen("about")
+    object Help : Screen("help")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,12 +63,11 @@ fun ZeroThreatApp(appPreferences: AppPreferences) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?. route
 
-    // Determine start destination based on preferences
     val startDestination = remember {
         when {
-            ! appPreferences.onboardingCompleted -> Screen. Splash. route
+            ! appPreferences.onboardingCompleted -> Screen.Splash.route
             ! appPreferences.permissionsGranted -> Screen.Permissions.route
-            ! appPreferences.modeSelected -> Screen.ModeSelection.route
+            !appPreferences.modeSelected -> Screen.ModeSelection.route
             else -> Screen.Dashboard.route
         }
     }
@@ -102,7 +107,7 @@ fun ZeroThreatApp(appPreferences: AppPreferences) {
                     NavigationBarItem(
                         selected = currentRoute == Screen.ManualCheck.route,
                         onClick = {
-                            navController.navigate(Screen. ManualCheck.route) {
+                            navController.navigate(Screen.ManualCheck.route) {
                                 launchSingleTop = true
                             }
                         },
@@ -113,14 +118,14 @@ fun ZeroThreatApp(appPreferences: AppPreferences) {
                             selectedTextColor = ElectricPurple,
                             unselectedIconColor = TextMuted,
                             unselectedTextColor = TextMuted,
-                            indicatorColor = ElectricPurple. copy(alpha = 0.2f)
+                            indicatorColor = ElectricPurple.copy(alpha = 0.2f)
                         )
                     )
 
                     NavigationBarItem(
                         selected = currentRoute == Screen.Settings.route,
                         onClick = {
-                            navController. navigate(Screen.Settings.route) {
+                            navController.navigate(Screen.Settings. route) {
                                 launchSingleTop = true
                             }
                         },
@@ -147,7 +152,7 @@ fun ZeroThreatApp(appPreferences: AppPreferences) {
                 SplashScreen(
                     onSplashFinished = {
                         navController.navigate(Screen.Onboarding.route) {
-                            popUpTo(Screen.Splash. route) { inclusive = true }
+                            popUpTo(Screen.Splash.route) { inclusive = true }
                         }
                     }
                 )
@@ -159,13 +164,13 @@ fun ZeroThreatApp(appPreferences: AppPreferences) {
                         appPreferences.onboardingCompleted = true
                         appPreferences.isFirstLaunch = false
                         navController.navigate(Screen. Permissions.route) {
-                            popUpTo(Screen. Onboarding.route) { inclusive = true }
+                            popUpTo(Screen.Onboarding.route) { inclusive = true }
                         }
                     }
                 )
             }
 
-            composable(Screen. Permissions.route) {
+            composable(Screen.Permissions. route) {
                 PermissionRequestScreen(
                     onPermissionsGranted = {
                         appPreferences.permissionsGranted = true
@@ -184,8 +189,9 @@ fun ZeroThreatApp(appPreferences: AppPreferences) {
 
             composable(Screen.ModeSelection.route) {
                 ModeSelectionScreen(
+                    appPreferences = appPreferences,
                     onModeSelected = { mode ->
-                        appPreferences.modeSelected = true
+                        appPreferences. modeSelected = true
                         appPreferences.selectedMode = mode. name
                         navController.navigate(Screen.Dashboard.route) {
                             popUpTo(Screen.ModeSelection.route) { inclusive = true }
@@ -225,6 +231,40 @@ fun ZeroThreatApp(appPreferences: AppPreferences) {
 
             composable(Screen.Settings.route) {
                 SettingsScreen(
+                    appPreferences = appPreferences,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToPrivacy = {
+                        navController.navigate(Screen.Privacy. route)
+                    },
+                    onNavigateToAbout = {
+                        navController.navigate(Screen.About.route)
+                    },
+                    onNavigateToHelp = {
+                        navController.navigate(Screen.Help. route)
+                    }
+                )
+            }
+
+            composable(Screen.Privacy.route) {
+                PrivacyPolicyScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.About.route) {
+                AboutScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.Help.route) {
+                HelpScreen(
                     onNavigateBack = {
                         navController.popBackStack()
                     }
